@@ -1,4 +1,4 @@
-# Blocking Learning — PLTU Jeranjang Unit 1
+# Blocking Learning 
 
 **Machine Learning-Based Furnace Blocking Early Warning System**
 
