@@ -7,7 +7,6 @@ FurnaceGuard AI adalah sistem analisis data operasi dan machine learning yang di
 Sistem ini dirancang sebagai **decision-support system**, bukan sebagai sistem kontrol otomatis boiler.
 
 
-[![CI](https://github.com/Rizki242/MACHINE_LEARNING/actions/workflows/ci.yml/badge.svg)](https://github.com/Rizki242/MACHINE_LEARNING/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-R%26D%20synthetic--data-orange)
