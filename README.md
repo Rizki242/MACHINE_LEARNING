@@ -1,8 +1,8 @@
-# FurnaceGuard AI — PLTU Jeranjang Unit 1
+# Blocking Learning — PLTU Jeranjang Unit 1
 
 **Machine Learning-Based Furnace Blocking Early Warning System**
 
-FurnaceGuard AI adalah sistem analisis data operasi dan machine learning yang dikembangkan khusus untuk mendukung deteksi dini risiko blocking pada furnace boiler **PLTU Jeranjang Unit 1 berkapasitas 25 MW**.
+Blocking Learning adalah sistem analisis data operasi dan machine learning yang dikembangkan khusus untuk mendukung deteksi dini risiko blocking pada furnace boiler **PLTU Jeranjang Unit 1 berkapasitas 25 MW**.
 
 Sistem ini dirancang sebagai **decision-support system**, bukan sebagai sistem kontrol otomatis boiler.
 
