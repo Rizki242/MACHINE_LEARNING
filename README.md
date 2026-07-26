@@ -934,11 +934,11 @@ dist/
 ## 23. Maintainer
 
 ```text
-Name         : Rizki Firmansyah
+Name         : Wahyu Eko
 Role         : Engineer / Project Developer
 Plant        : PLTU Jeranjang
 Unit         : Unit 1
-Project      : FurnaceGuard AI
+Project      : Blocking Learning
 ```
 
 ---
