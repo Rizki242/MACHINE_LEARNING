@@ -1,0 +1,494 @@
+# FurnaceGuard AI — Taksonomi Event dan Aturan Klasifikasi Teks
+# Sumber: README §6 (jenis gangguan), §15 (kode event dan severity)
+#
+# Berkas ini memetakan teks bahasa Indonesia bebas dari kolom
+# GANGGUAN / PENYEBAB / EQUIPMENT pada file PARETO riwayat gangguan
+# menjadi event_type, event_location, dan severity terstruktur.
+#
+# Seluruh kata kunci di bawah diambil dari frasa yang BENAR-BENAR muncul
+# di data Unit 1 (2016-01 s/d 2026-05), termasuk salah ketiknya.
+# Menambah kata kunci di sini tidak memerlukan perubahan kode Python.
+
+version: "0.1.0"
+reviewed_by: null
+reviewed_date: null
+
+# --------------------------------------------------------------------
+# Normalisasi nama equipment
+# Data mentah punya 95 varian ejaan/kapitalisasi untuk Unit 1.
+# Pencocokan dilakukan case-insensitive terhadap `patterns` (substring).
+# Urutan penting: entri pertama yang cocok menang.
+# --------------------------------------------------------------------
+equipment_canonical:
+  - name: COAL_FEEDER
+    patterns: ["coal feeder", "coalfeeder", "coal_feeder", "line feeder"]
+  - name: COAL_HANDLING
+    patterns: ["bunker", "dome coal yard", "crusher", "line loading", "trafo coal handling"]
+  - name: FURNACE
+    patterns: ["furnace", "funace"]
+  - name: EMBEDDED_TUBE
+    patterns: ["embedded tube", "embedded wall", "tube sisi windbox", "tube boiler"]
+  - name: CYCLONE
+    patterns: ["cyclone", "sealpot", "seal pot"]
+  - name: BOILER
+    patterns: ["boiler"]
+  - name: SOOTBLOWER
+    patterns: ["sootblower", "soot blower"]
+  - name: ESP
+    patterns: ["esp"]
+  - name: PAF
+    patterns: ["paf", "primary air fan"]
+  - name: SAF
+    patterns: ["saf", "sa fan", "secondary air fan"]
+  - name: IDF
+    patterns: ["idf", "id fan"]
+  - name: BFP
+    patterns: ["bfp", "boiler feed pump"]
+  - name: FEEDWATER
+    patterns: ["feedwater", "feed water", "economizer", "hph", "extraction"]
+  - name: CWP
+    patterns: ["cwp", "c3wp", "butterfly valve cwp", "raw pump", "vacuum pump"]
+  - name: CONDENSER
+    patterns: ["condenser", "condensor", "condeser", "kondensor", "hotwell", "debris"]
+  - name: HEAT_EXCHANGER
+    patterns: ["heat exchanger", "oil cooler"]
+  - name: TURBINE
+    patterns: ["turbine", "turbin", "msv", "governoor", "governor", "tsi",
+               "axial displacement", "safety valve", "drain main steam"]
+  - name: GENERATOR
+    patterns: ["generator", "excitation", "excitacy", "reactor", "breaker",
+               "electrical protection", "ets cabinet"]
+  - name: WTP
+    patterns: ["wtp", "sampling rack"]
+  - name: EXTERNAL
+    patterns: ["external", "eksternal"]
+  - name: UNIT
+    patterns: ["unit 1", "overhaul"]
+
+# Equipment yang tidak pernah relevan untuk risiko blocking furnace.
+# Event dengan equipment ini langsung diberi label `not_furnace_related`
+# kecuali teks gangguannya secara eksplisit menyebut furnace/bed/feeder.
+non_furnace_equipment:
+  - CWP
+  - CONDENSER
+  - HEAT_EXCHANGER
+  - TURBINE
+  - GENERATOR
+  - WTP
+  - EXTERNAL
+  - BFP
+  - FEEDWATER
+
+# --------------------------------------------------------------------
+# Jenis event (README §6 dan §15)
+# `code` dipakai membentuk event_id: JRG-U1-<code>-<NNN>
+# `weight` menentukan prioritas ketika beberapa jenis sama-sama cocok.
+# --------------------------------------------------------------------
+event_types:
+
+  furnace_agglomeration:
+    code: CLINKER
+    label: Aglomerasi / slagging furnace
+    default_location: main_bed
+    weight: 100
+    keywords:
+      - aglomerasi
+      - agglomerasi
+      - aglomerasi furnace
+      - slagging
+      - slaging
+      - temperatur furnace high
+      - temperatur furnace tinggi
+      - temperature furnace tinggi
+      - temperatur bed tinggi
+      - temperature bed
+      - treatment temperature bed
+      - treatment temperatur furnace
+      - temperatur bed material tinggi
+      - clinker
+      - kerak
+      - bed material tinggi
+    cause_keywords:
+      - indikasi slagging
+      - pembentukan aglomerasi
+      - slagging area furnace
+      - bed material
+
+  coal_feeder_blocking:
+    code: FEEDER
+    label: Blocking coal feeder / chute
+    default_location: coal_feeder_unknown
+    weight: 90
+    keywords:
+      - blocking pada coal feeder
+      - blocking pada coalfeeder
+      - blocking batu bara
+      - blocking batubara
+      - blocking dan plugging
+      - blocking pada chute
+      - coal feeder block
+      - cute coal feeder
+      - chute coal bunker
+      - penyesuaian flow batubara
+      - coal feeder trip
+      - coalfeeder trip
+      - coal feeder trouble
+      - gangguan coal feeder
+      - kerusakan coal feeder
+      - chain cleaning
+      - rantai cleaning
+      - belt coal feeder
+      - gearbox coal feeder
+      - gear box coal feeder
+      - kalibrasi pembacaan coal flow
+      - penyesuaian coal flow
+      - penyesuaian coalflow
+    cause_keywords:
+      # "lembab" berdiri sendiri karena urutan kata di sumber tidak
+      # konsisten: "batubara lembab", "batubara kondisi lembab",
+      # "kondisi batubara yang lembab".
+      - lembab
+      - batubara lembab
+      - batuabra lembab
+      - low rank coal
+      - coal broke
+      - belt jogging
+      - ngeblock
+      - feeding terhambat
+      - kondisi kualitas batubara
+      - motor overload
+      - self combustion
+
+  bottom_ash_blocking:
+    code: BLK
+    label: Blocking bottom ash / cold slag pipe
+    default_location: slag_pipe_unknown
+    weight: 95
+    keywords:
+      - slag pipe
+      - cold slag
+      - bottom ash
+      - ash tidak keluar
+      - ash not discharging
+      - ash cooler
+      - poking
+      - buntu slag
+      - slag valve
+    cause_keywords:
+      - ash discharge
+      - abu tidak keluar
+
+  return_system_disturbance:
+    code: RETURN
+    label: Gangguan return material / U-valve
+    default_location: return_leg
+    weight: 85
+    keywords:
+      - sealpot
+      - seal pot
+      - blocking di area cyclone
+      - blocking di sealpot
+      - return leg
+      - u-valve
+      - u valve
+      - loop seal
+      - cyclone
+    cause_keywords:
+      - refractory rontok
+      - menutupi area seal
+
+  air_distribution_disturbance:
+    code: AIR
+    label: Gangguan distribusi udara
+    default_location: main_bed
+    weight: 70
+    keywords:
+      - furnace pdt tinggi
+      - furnace pdt rendah
+      - furnace boiler pdt
+      - pdt tinggi
+      - pdt rendah
+      - air nozzle
+      - wind cap
+      - windbox
+      - ducting paf
+      - ducting saf
+      - damper
+    cause_keywords:
+      - bukaan damper idf
+      - komposisi udara pembakaran
+      - pdt kurang tinggi
+      - pasir kuarsa
+
+  tube_leak_bed_erosion:
+    code: ASH
+    label: Kebocoran tube akibat erosi bed material
+    default_location: rear_side
+    weight: 80
+    keywords:
+      - kebocoran embedded tube
+      - kebocoran embedded wall
+      - kebocoran boiler area embedded
+      - embedded wall tube
+      - kebocoran tube boiler
+      - kebocoran boiler
+      - wall tube bocor
+      - tube boiler bocor
+      - boiler bocor
+      - inlet furcace bocor
+    cause_keywords:
+      - bed material erosion
+      - erosi bed material
+
+  # ------------------------------------------------------------------
+  # Kelas berikut BUKAN blocking furnace, tetapi tetap diklasifikasikan
+  # supaya tidak ada baris yang jatuh ke `unclassified` tanpa alasan.
+  # Hanya `coal_quality_derating` yang ikut sebagai konteks risiko,
+  # karena kualitas batubara adalah pemicu terdokumentasi untuk
+  # aglomerasi dan blocking feeder (README §4, §10).
+  # ------------------------------------------------------------------
+
+  coal_quality_derating:
+    code: FUEL
+    label: Derating akibat kualitas batubara
+    default_location: main_bed
+    weight: 60
+    keywords:
+      - pressure main steam turun
+      - presssure main steam turun
+      - pressure mainsteam turbin turun
+      - pressure steam drop
+      - penyesuaian beban berdasar
+      - kualitas batubara
+    cause_keywords:
+      - kondisi batubara
+      - kualitas batubara
+      - kalori batubara
+      - batubara yang kurang bagus
+
+  coal_supply_constraint:
+    code: SUPPLY
+    label: Pembatasan operasi akibat pasokan batubara
+    default_location: null
+    weight: 55
+    keywords:
+      - stok pasokan batubara
+      - penyesuaian pola operasi
+      - stok batubara
+      - keterbatasan batubara
+    cause_keywords:
+      - menjaga stok
+      - pasokan batubara
+
+  boiler_tube_leak_other:
+    code: TUBE
+    label: Kebocoran tube boiler di luar area bed
+    default_location: null
+    weight: 65
+    keywords:
+      - tube economizer bocor
+      - tube super heater bocor
+      - tube superheater bocor
+      - economizer bocor
+      - header economizer
+    cause_keywords:
+      - tembakan soot blower
+      - erosi karena tembakan
+
+  fan_disturbance:
+    code: FAN
+    label: Gangguan fan udara pembakaran
+    default_location: null
+    weight: 50
+    keywords:
+      - paf vibrasi
+      - paf bearing
+      - bearing paf
+      - gear box paf
+      - gearbox paf
+      - saf short
+      - sa fan
+      - idf
+      - ducting paf
+      - ducting saf
+    cause_keywords:
+      - pelumasan tidak optimal
+      - indikasi bearing rusak
+
+  boiler_auxiliary_other:
+    code: AUX
+    label: Gangguan peralatan bantu boiler lain
+    default_location: null
+    weight: 45
+    keywords:
+      - ignition trouble
+      - burner trouble
+      - sootblower
+      - soot blower
+      - esp blocking
+      - refactory tube boiler
+      - refractory tube boiler
+      - safety valve
+      - leak through pada psv
+      - savety valve
+      - retubing
+    cause_keywords:
+      - mekanisme burner
+      - poppet valve
+      - collecting plate
+      - semen refactory
+
+  startup_normalisation:
+    code: STARTUP
+    label: Penormalan parameter dan kenaikan beban pasca sinkron
+    default_location: null
+    weight: 40
+    keywords:
+      - kenaikan beban bertahap
+      - pasca sinkron
+      - penormalan parameter operasi
+      - proses pemantauan paramater
+      - unit performance testing
+    cause_keywords:
+      - kecepatan start up
+      - unit performance testing
+
+# --------------------------------------------------------------------
+# Penentuan lokasi (event_location) dari teks.
+# Dicek setelah event_type ditetapkan; bila tidak ada yang cocok,
+# dipakai `default_location` dari event_type.
+# --------------------------------------------------------------------
+location_keywords:
+  coal_feeder_1: ["coal feeder 1a", "coalfeeder 1a", "coal feeder #1", "cf 1a", "feeder 1a"]
+  coal_feeder_2: ["coal feeder 1b", "coalfeeder 1b", "coal feeder #2", "cf 1b", "feeder 1b"]
+  coal_feeder_3: ["coal feeder 3", "coalfeeder 3"]
+  coal_feeder_4: ["coal feeder 4", "coalfeeder 4"]
+  slag_pipe_1: ["slag pipe 1", "slag pipe #1"]
+  slag_pipe_2: ["slag pipe 2", "slag pipe #2"]
+  slag_pipe_3: ["slag pipe 3", "slag pipe #3"]
+  slag_pipe_4: ["slag pipe 4", "slag pipe #4"]
+  front_side: ["sisi front", "sisi depan", "front (timur)", "sisi timur"]
+  rear_side: ["sisi rear", "rear boiler", "sisi belakang", "sisi barat"]
+  left_side: ["sisi kiri", "left side"]
+  right_side: ["sisi kanan", "right side"]
+  front_auxiliary_bed: ["front auxiliary", "front aux"]
+  rear_auxiliary_bed: ["rear auxiliary", "rear aux"]
+  return_leg: ["return leg", "sealpot", "seal pot"]
+  u_type_return_valve: ["u-valve", "u valve", "u-type"]
+  main_bed: ["main bed", "bed material", "area furnace"]
+
+# --------------------------------------------------------------------
+# Severity (README §15)
+#   0 = Normal
+#   1 = Initial indication
+#   2 = Warning
+#   3 = Blocking
+#   4 = Critical blocking / derating / shutdown / trip
+#
+# Diturunkan dari kombinasi status kejadian (kolom STATUS pada sumber)
+# dan durasi. Aturan dievaluasi berurutan; yang pertama cocok menang.
+#
+# Kode status pada sumber (jumlah baris Unit 1):
+#   Derating: FD 193, MD 49, FD (OMC) 43, OMC 14, FD-MD 2, MD-FD 1
+#   Outage  : FO 82, MO 25, OMC 8, FO-MO 6, PO 2, FOL 1, PE 1, FD 1
+#   FO  = Forced Outage        MO = Maintenance Outage
+#   FD  = Forced Derating      MD = Maintenance Derating
+#   PO  = Planned Outage       PE = Planned Extension
+#   FOL = Forced Outage akibat gangguan luar
+#   OMC = Outside Management Control
+# --------------------------------------------------------------------
+severity_rules:
+  # Catatan pada sheet outage berarti unit benar-benar berhenti, apa pun
+  # kode statusnya. Sebagian baris di sheet itu berkode FD atau OMC;
+  # menilainya dari kode status saja akan menurunkan severity-nya secara
+  # keliru menjadi setara derating.
+  - name: outage_panjang
+    match_record_kind: outage
+    min_duration_hours: 24.0
+    severity: 4
+    rationale: Outage lebih dari 24 jam — unit berhenti, dampak berat
+
+  - name: outage_pendek
+    match_record_kind: outage
+    min_duration_hours: 0.0
+    severity: 3
+    rationale: Unit berhenti — blocking terkonfirmasi
+
+  - name: derating_berat
+    match_status_prefix: ["FD", "MD"]
+    min_derating_mw: 8.0
+    severity: 3
+    rationale: Penurunan beban besar — blocking berkembang
+
+  - name: derating_panjang
+    match_status_prefix: ["FD", "MD"]
+    min_duration_hours: 24.0
+    severity: 3
+    rationale: Derating berkepanjangan
+
+  - name: derating_biasa
+    match_status_prefix: ["FD", "MD", "OMC"]
+    min_duration_hours: 0.0
+    severity: 2
+    rationale: Derating — kondisi abnormal terverifikasi
+
+  - name: default
+    match_status_prefix: []
+    min_duration_hours: 0.0
+    severity: 2
+    rationale: Status tidak dikenali — diberi tingkat konservatif
+
+# --------------------------------------------------------------------
+# Klasifikator lapis 2 — TF-IDF karakter n-gram
+# Dilatih pada label lapis 1 sebagai weak supervision. Analyzer karakter
+# dipilih karena data penuh salah ketik: "funace", "pembebeban",
+# "batuabra", "indikiasi", "Cute Coal Feeder", "slaging".
+# --------------------------------------------------------------------
+text_model:
+  analyzer: char_wb
+  ngram_range: [3, 5]
+  min_df: 2
+  max_features: 20000
+  sublinear_tf: true
+  classifier: logistic_regression
+  C: 4.0
+  class_weight: balanced
+  max_iter: 2000
+  random_state: 42
+  # Prediksi lapis 2 dengan keyakinan di bawah ambang ini tidak
+  # dipakai untuk menantang lapis 1.
+  min_confidence_to_challenge: 0.60
+
+# Event yang jenisnya berikut dianggap relevan untuk pelabelan
+# risiko blocking furnace pada pipeline timeseries.
+blocking_event_types:
+  - furnace_agglomeration
+  - coal_feeder_blocking
+  - bottom_ash_blocking
+  - return_system_disturbance
+  - air_distribution_disturbance
+  - tube_leak_bed_erosion
+
+# Event konteks: bukan blocking, tetapi menandai kondisi bahan bakar
+# yang terdokumentasi sebagai pemicu aglomerasi dan blocking feeder.
+# Dipakai sebagai penanda kondisi, bukan sebagai label target.
+context_event_types:
+  - coal_quality_derating
+
+# Jenis event yang tidak menandakan gangguan peralatan sama sekali,
+# sehingga severity-nya 0 berapa pun status dan durasinya.
+zero_severity_event_types:
+  - not_furnace_related
+  - coal_supply_constraint
+  - startup_normalisation
+
+# Jenis event yang tidak pernah dipakai sebagai label target maupun
+# konteks. Disimpan hanya agar registry lengkap dan dapat diaudit.
+non_target_event_types:
+  - not_furnace_related
+  - coal_supply_constraint
+  - startup_normalisation
+  - boiler_auxiliary_other
+  - boiler_tube_leak_other
+  - fan_disturbance
+  - unclassified

@@ -1,0 +1,56 @@
+.env
+*.db
+*.sqlite
+backend/datasets/private/
+backend/models/
+backend/reports/private/
+__pycache__/
+.venv/
+node_modules/
+dist/
+
+# Data pembangkit — jangan pernah di-commit (README §21)
+/data/
+backend/datasets/processed/
+backend/datasets/synthetic/*.parquet
+backend/datasets/synthetic/*.csv
+
+# Keluaran runtime
+backend/reports/figures/
+backend/reports/*.csv
+backend/reports/*.json
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Python packaging / tooling
+*.egg-info/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Notebook/runtime artifacts
+.ipynb_checkpoints/
+*.log
+
+# Local secrets and keys
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Large/generated ML artifacts
+backend/datasets/**/*.parquet
+backend/datasets/**/*.feather
+backend/datasets/**/*.h5
+backend/datasets/**/*.hdf5
+backend/models/*.joblib
+backend/models/*.pkl
+backend/models/*.onnx
+
+# Local AI assistant state
+.agents/
+.claude/

@@ -1,0 +1,40 @@
+========================================================================
+DEMO HYBRID RISK ENGINE — FURNACEGUARD AI
+========================================================================
+Angka unjuk kerja berikut dihitung di atas DATA SINTETIS, bukan data operasi PLTU Jeranjang Unit 1. Angka ini TIDAK BOLEH dikutip sebagai unjuk kerja lapangan. Tujuannya hanya memvalidasi bahwa pipeline berjalan benar dari ujung ke ujung.
+
+Model            : xgboost
+Horizon          : blocking_next_60m (60 menit)
+Ambang keputusan : 0.01846
+Periode          : 2024-12-31 20:00 sampai 2025-01-01 00:30
+Event nyata      : 2025-01-01 00:00
+PLTU JERANJANG UNIT 1
+FURNACE BLOCKING EARLY WARNING
+
+Waktu               : 2024-12-31 22:17 WITA
+Unit Load           : 10,7 MW
+Boiler Steam Flow   : 54,7 t/h
+Risk Score          : 39%
+Status              : EARLY WARNING
+Prediction Horizon  : 30-60 menit
+Confidence Score    : 99%
+Data Quality Score  : 100%
+
+Suspected Area:
+Return Leg
+
+Dominant Indicators:
+1. Return leg temperature menyimpang (return_leg_temperature_dev = -2.99)
+2. Auxiliary bed airflow menurun (auxiliary_bed_air_flow_dev = -2.43)
+3. Bed differential pressure naik berkelanjutan (bed_differential_pressure_slope_30m = 0.0151)
+4. Return leg pressure menyimpang (return_leg_pressure_dev = -2.64)
+5. Header pressure berubah (primary_air_pressure_dev = -3.1)
+
+Recommended Verification:
+- Periksa tekanan udara U-type return valve
+- Periksa temperatur return leg
+- Periksa differential pressure cyclone separator
+- Konfirmasi kondisi lokal sesuai SOP
+
+------------------------------------------------------------
+FurnaceGuard AI adalah alat analisis dan pendukung keputusan. Hasilnya bukan perintah operasi, bukan pengganti SOP, operator, engineer boiler, maupun interlock dan proteksi. Tidak menjamin blocking akan atau tidak akan terjadi. Wajib diverifikasi dengan kondisi aktual. Keputusan akhir berada pada operator dan engineer yang berwenang.

@@ -1,0 +1,1 @@
+"""Router FastAPI FurnaceGuard AI."""

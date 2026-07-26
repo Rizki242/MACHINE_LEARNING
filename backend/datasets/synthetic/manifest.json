@@ -1,0 +1,65 @@
+{
+  "data_source": "synthetic",
+  "seed": 20260726,
+  "freq": "1min",
+  "years": [
+    {
+      "year": 2020,
+      "rows": 527040,
+      "path": "D:\\MACHINE_LEARNING\\backend\\datasets\\synthetic\\timeseries_unit1_2020.parquet",
+      "size_mb": 119.1,
+      "running_share": 0.868,
+      "event_starts": 16
+    },
+    {
+      "year": 2021,
+      "rows": 525600,
+      "path": "D:\\MACHINE_LEARNING\\backend\\datasets\\synthetic\\timeseries_unit1_2021.parquet",
+      "size_mb": 118.9,
+      "running_share": 0.928,
+      "event_starts": 8
+    },
+    {
+      "year": 2022,
+      "rows": 525600,
+      "path": "D:\\MACHINE_LEARNING\\backend\\datasets\\synthetic\\timeseries_unit1_2022.parquet",
+      "size_mb": 118.5,
+      "running_share": 0.851,
+      "event_starts": 21
+    },
+    {
+      "year": 2023,
+      "rows": 525600,
+      "path": "D:\\MACHINE_LEARNING\\backend\\datasets\\synthetic\\timeseries_unit1_2023.parquet",
+      "size_mb": 118.9,
+      "running_share": 0.884,
+      "event_starts": 20
+    },
+    {
+      "year": 2024,
+      "rows": 527040,
+      "path": "D:\\MACHINE_LEARNING\\backend\\datasets\\synthetic\\timeseries_unit1_2024.parquet",
+      "size_mb": 119.1,
+      "running_share": 0.909,
+      "event_starts": 25
+    },
+    {
+      "year": 2025,
+      "rows": 525600,
+      "path": "D:\\MACHINE_LEARNING\\backend\\datasets\\synthetic\\timeseries_unit1_2025.parquet",
+      "size_mb": 119.6,
+      "running_share": 0.942,
+      "event_starts": 17
+    },
+    {
+      "year": 2026,
+      "rows": 187201,
+      "path": "D:\\MACHINE_LEARNING\\backend\\datasets\\synthetic\\timeseries_unit1_2026.parquet",
+      "size_mb": 50.7,
+      "running_share": 0.97,
+      "event_starts": 5
+    }
+  ],
+  "warning": "Data sintetis. Metrik model yang dihitung di atasnya tidak boleh dikutip sebagai unjuk kerja lapangan.",
+  "total_rows": 3343681
+}

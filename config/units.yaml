@@ -1,0 +1,131 @@
+# FurnaceGuard AI — Spesifikasi Unit dan Zona Operasi
+# Sumber: README §2, §3, §4, §10 (turunan dari manual desain boiler F13010)
+#
+# PERINGATAN: Nilai di sini adalah DESIGN BASELINE, bukan batas operasi resmi.
+# Batas operasi, alarm, dan trip aktual wajib diverifikasi terhadap SOP,
+# logic DCS, cause and effect, commissioning report, dan data operasi Unit 1.
+
+unit:
+  unit_id: UNIT_1
+  plant: PLTU Jeranjang
+  operator: PLN Indonesia Power UBP Jeranjang
+  capacity_mw: 25.0
+  timezone: Asia/Makassar
+
+boiler:
+  type: Circulating Fluidized Bed
+  configuration: Single drum, full membrane wall
+  combustion_technology: High-low differential-speed fluidized bed
+  rated_evaporation_t_per_h: 130.0
+  superheated_steam_pressure_mpag: 9.81
+  superheated_steam_temperature_c: 540.0
+  feedwater_temperature_c: 215.0
+  blowdown_rate_pct: 2.0
+  design_efficiency_pct: 90.0
+  # Efisiensi aktual dari uji heat rate April 2026 (HHV basis)
+  measured_efficiency_pct: 80.39
+
+furnace:
+  width_mm: 8235.0
+  depth_mm: 6765.0
+  cross_sectional_area_m2: 55.7
+  drum_elevation_mm: 32000.0
+  highest_elevation_mm: 40776.0
+  # Selisih ketinggian main bed dan auxiliary bed (README §3)
+  bed_height_difference_mm: 500.0
+  slag_pipe_count: 4
+  slag_pipe_diameter_mm: 219.0
+  coal_feeder_count: 4
+
+# Zona analisis minimum (README §3)
+zones:
+  - main_bed
+  - front_auxiliary_bed
+  - rear_auxiliary_bed
+  - left_side
+  - right_side
+  - front_side
+  - rear_side
+  - coal_feeder_1
+  - coal_feeder_2
+  - coal_feeder_3
+  - coal_feeder_4
+  - slag_pipe_1
+  - slag_pipe_2
+  - slag_pipe_3
+  - slag_pipe_4
+  - return_leg
+  - u_type_return_valve
+
+# Bahan bakar desain (README §4)
+design_fuel:
+  carbon_ar_pct: 40.92
+  hydrogen_ar_pct: 3.42
+  oxygen_ar_pct: 13.902
+  nitrogen_ar_pct: 0.678
+  sulfur_ar_pct: 1.08
+  ash_ar_pct: 5.0
+  moisture_ar_pct: 35.0
+  volatile_matter_daf_pct: 58.3
+  net_calorific_value_kcal_per_kg: 3611.0
+  particle_size_mm: [0, 8]
+
+# Zona baseline berbasis beban (README §10)
+# Konfigurasi awal — WAJIB divalidasi dengan data operasi aktual Unit 1.
+load_zones:
+  - name: startup
+    label: Startup
+    min_mw: 0.0
+    max_mw: 5.0
+  - name: low_load
+    label: Low load
+    min_mw: 5.0
+    max_mw: 10.0
+  - name: medium_load
+    label: Medium load
+    min_mw: 10.0
+    max_mw: 17.0
+  - name: high_load
+    label: High load
+    min_mw: 17.0
+    max_mw: 22.0
+  - name: near_rated_load
+    label: Near rated load
+    min_mw: 22.0
+    max_mw: 25.0
+
+# Rentang fisik yang masuk akal — dipakai modul kualitas data untuk
+# mendeteksi pelanggaran rentang. BUKAN batas alarm operasi.
+plausible_ranges:
+  unit_load_mw:              [0.0, 27.0]
+  main_steam_flow:           [0.0, 145.0]
+  main_steam_pressure:       [0.0, 11.5]
+  main_steam_temperature:    [0.0, 570.0]
+  coal_flow_total:           [0.0, 30.0]
+  main_bed_temperature:      [0.0, 1050.0]
+  front_aux_bed_temperature: [0.0, 1050.0]
+  rear_aux_bed_temperature:  [0.0, 1050.0]
+  main_bed_pressure:         [0.0, 20.0]
+  bed_differential_pressure: [0.0, 20.0]
+  furnace_pressure:          [-2000.0, 2000.0]
+  main_bed_air_flow:         [0.0, 120000.0]
+  auxiliary_bed_air_flow:    [0.0, 60000.0]
+  primary_air_pressure:      [0.0, 30.0]
+  secondary_air_flow:        [0.0, 90000.0]
+  oxygen_o2:                 [0.0, 21.0]
+  carbon_monoxide_co:        [0.0, 5000.0]
+  id_fan_current:            [0.0, 400.0]
+  ash_cooler_motor_current:  [0.0, 120.0]
+  return_leg_temperature:    [0.0, 1050.0]
+  return_leg_pressure:       [0.0, 20.0]
+  u_valve_air_pressure:      [0.0, 30.0]
+  separator_differential_pressure: [0.0, 10.0]
+
+# Referensi operasi CFB normal — dipakai generator sintetis sebagai titik acuan.
+# Bukan angka terukur Unit 1.
+nominal_operating_reference:
+  bed_temperature_c:        [820.0, 900.0]
+  bed_differential_pressure_kpa: [6.0, 10.0]
+  oxygen_o2_pct:            [3.0, 6.0]
+  carbon_monoxide_co_ppm:   [50.0, 300.0]
+  furnace_pressure_pa:      [-200.0, 50.0]

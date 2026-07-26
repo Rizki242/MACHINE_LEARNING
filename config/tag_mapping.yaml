@@ -1,0 +1,365 @@
+# FurnaceGuard AI — Pemetaan Tag DCS ke Nama Fitur Standar
+# Sumber: README §7 (Priority A/B/C) dan §8 (Data Dictionary)
+#
+# ============================ WAJIB DIBACA ============================
+# SELURUH `dcs_tag` MASIH null — BELUM DIPETAKAN.
+# Nama tag harus diisi dan diverifikasi oleh engineer operasi atau
+# instrumentation PLTU Jeranjang sebelum sistem disambungkan ke data nyata.
+#
+# Selama `dcs_tag` masih null, satu-satunya sumber timeseries adalah
+# generator sintetis (backend/app/data/synthetic.py) yang memakai
+# `standard_name` di bawah sebagai nama kolom. Saat tag asli diisi,
+# loader memetakan tag -> standard_name tanpa perubahan kode hilir.
+# =====================================================================
+
+version: "0.1.0"
+mapped_by: null
+mapped_date: null
+source_system: null          # contoh: "PI Historian", "Ovation", "CSV export"
+
+# --------------------------------------------------------------------
+# Priority A — wajib untuk MVP (README §7)
+# --------------------------------------------------------------------
+priority_a:
+  - standard_name: timestamp
+    dcs_tag: null
+    unit: datetime
+    description: Cap waktu pengukuran, zona Asia/Makassar
+
+  - standard_name: unit_load_mw
+    dcs_tag: null
+    unit: MW
+    description: Beban generator
+
+  - standard_name: main_steam_flow
+    dcs_tag: null
+    unit: t/h
+    description: Produksi steam
+
+  - standard_name: main_steam_pressure
+    dcs_tag: null
+    unit: MPa
+    description: Tekanan main steam
+
+  - standard_name: main_steam_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur main steam
+
+  - standard_name: coal_flow_total
+    dcs_tag: null
+    unit: t/h
+    description: Total fuel input
+
+  - standard_name: coal_feeder_1_flow
+    dcs_tag: null
+    unit: t/h
+    description: Aliran batubara coal feeder 1
+  - standard_name: coal_feeder_2_flow
+    dcs_tag: null
+    unit: t/h
+    description: Aliran batubara coal feeder 2
+  - standard_name: coal_feeder_3_flow
+    dcs_tag: null
+    unit: t/h
+    description: Aliran batubara coal feeder 3
+  - standard_name: coal_feeder_4_flow
+    dcs_tag: null
+    unit: t/h
+    description: Aliran batubara coal feeder 4
+
+  - standard_name: coal_feeder_1_command
+    dcs_tag: null
+    unit: t/h
+    description: Setpoint aliran coal feeder 1
+  - standard_name: coal_feeder_2_command
+    dcs_tag: null
+    unit: t/h
+    description: Setpoint aliran coal feeder 2
+  - standard_name: coal_feeder_3_command
+    dcs_tag: null
+    unit: t/h
+    description: Setpoint aliran coal feeder 3
+  - standard_name: coal_feeder_4_command
+    dcs_tag: null
+    unit: t/h
+    description: Setpoint aliran coal feeder 4
+
+  - standard_name: coal_feeder_1_current
+    dcs_tag: null
+    unit: A
+    description: Arus motor coal feeder 1
+  - standard_name: coal_feeder_2_current
+    dcs_tag: null
+    unit: A
+    description: Arus motor coal feeder 2
+  - standard_name: coal_feeder_3_current
+    dcs_tag: null
+    unit: A
+    description: Arus motor coal feeder 3
+  - standard_name: coal_feeder_4_current
+    dcs_tag: null
+    unit: A
+    description: Arus motor coal feeder 4
+
+  - standard_name: main_bed_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur main bed
+
+  - standard_name: front_aux_bed_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur front auxiliary bed
+
+  - standard_name: rear_aux_bed_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur rear auxiliary bed
+
+  - standard_name: main_bed_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Indikator inventori bed
+
+  - standard_name: bed_differential_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Kondisi fluidisasi bed
+
+  - standard_name: aux_bed_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Tekanan auxiliary bed
+
+  - standard_name: furnace_pressure
+    dcs_tag: null
+    unit: Pa
+    description: Stabilitas draft furnace
+
+  - standard_name: main_bed_air_flow
+    dcs_tag: null
+    unit: Nm3/h
+    description: Fluidizing air main bed
+
+  - standard_name: auxiliary_bed_air_flow
+    dcs_tag: null
+    unit: Nm3/h
+    description: Fluidizing air auxiliary bed total
+
+  - standard_name: front_aux_bed_air_flow
+    dcs_tag: null
+    unit: Nm3/h
+    description: Fluidizing air front auxiliary bed
+
+  - standard_name: rear_aux_bed_air_flow
+    dcs_tag: null
+    unit: Nm3/h
+    description: Fluidizing air rear auxiliary bed
+
+  - standard_name: primary_air_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Tekanan header primary air
+
+  - standard_name: secondary_air_flow
+    dcs_tag: null
+    unit: Nm3/h
+    description: Aliran secondary air
+
+  - standard_name: oxygen_o2
+    dcs_tag: null
+    unit: pct
+    description: Excess air
+
+  - standard_name: carbon_monoxide_co
+    dcs_tag: null
+    unit: ppm
+    description: Indikator ketidakstabilan pembakaran
+
+  - standard_name: id_fan_current
+    dcs_tag: null
+    unit: A
+    description: Arus ID fan
+
+  - standard_name: bottom_ash_discharge_status
+    dcs_tag: null
+    unit: boolean
+    description: Status pembuangan bottom ash
+
+  - standard_name: ash_cooler_motor_current
+    dcs_tag: null
+    unit: A
+    description: Beban ash cooler
+
+  - standard_name: operator_event
+    dcs_tag: null
+    unit: text
+    description: Catatan tindakan operator, termasuk poking
+
+# --------------------------------------------------------------------
+# Priority B — sangat disarankan (README §7)
+# --------------------------------------------------------------------
+priority_b:
+  - standard_name: separator_differential_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Differential pressure cyclone separator
+
+  - standard_name: return_leg_temperature
+    dcs_tag: null
+    unit: degC
+    description: Indikator sirkulasi material kembali
+
+  - standard_name: return_leg_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Tekanan return leg
+
+  - standard_name: u_valve_air_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Kondisi U-type return valve
+
+  - standard_name: slag_pipe_1_status
+    dcs_tag: null
+    unit: boolean
+    description: Status slag pipe 1
+  - standard_name: slag_pipe_2_status
+    dcs_tag: null
+    unit: boolean
+    description: Status slag pipe 2
+  - standard_name: slag_pipe_3_status
+    dcs_tag: null
+    unit: boolean
+    description: Status slag pipe 3
+  - standard_name: slag_pipe_4_status
+    dcs_tag: null
+    unit: boolean
+    description: Status slag pipe 4
+
+  - standard_name: slag_pipe_1_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur slag pipe 1
+  - standard_name: slag_pipe_2_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur slag pipe 2
+  - standard_name: slag_pipe_3_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur slag pipe 3
+  - standard_name: slag_pipe_4_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur slag pipe 4
+
+  - standard_name: ash_cooler_inlet_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur masuk ash cooler
+
+  - standard_name: ash_cooler_outlet_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur keluar ash cooler
+
+  - standard_name: ash_hopper_level
+    dcs_tag: null
+    unit: pct
+    description: Level ash hopper
+
+  - standard_name: furnace_outlet_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur keluar furnace
+
+  - standard_name: bottom_ash_flow
+    dcs_tag: null
+    unit: t/h
+    description: Laju pembuangan bottom ash
+
+  - standard_name: coal_moisture
+    dcs_tag: null
+    unit: pct
+    description: Kadar air batubara
+
+  - standard_name: coal_ash_content
+    dcs_tag: null
+    unit: pct
+    description: Kadar abu batubara
+
+  - standard_name: coal_calorific_value
+    dcs_tag: null
+    unit: kcal/kg
+    description: Nilai kalor batubara
+
+  - standard_name: coal_size_distribution
+    dcs_tag: null
+    unit: pct
+    description: Distribusi ukuran batubara
+
+  - standard_name: coal_source
+    dcs_tag: null
+    unit: text
+    description: Sumber batubara
+
+  - standard_name: coal_blending_ratio
+    dcs_tag: null
+    unit: text
+    description: Rasio pencampuran batubara
+
+# --------------------------------------------------------------------
+# Priority C — pengembangan lanjutan (README §7)
+# Belum dipakai di Fase 0.
+# --------------------------------------------------------------------
+priority_c:
+  - standard_name: waterwall_metal_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur metal waterwall
+  - standard_name: windbox_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Tekanan windbox
+  - standard_name: air_nozzle_differential_pressure
+    dcs_tag: null
+    unit: kPa
+    description: Differential pressure air nozzle
+  - standard_name: fly_ash_loi
+    dcs_tag: null
+    unit: pct
+    description: Loss on ignition fly ash
+  - standard_name: bottom_ash_loi
+    dcs_tag: null
+    unit: pct
+    description: Loss on ignition bottom ash
+  - standard_name: ash_chemical_composition
+    dcs_tag: null
+    unit: text
+    description: Komposisi kimia abu
+  - standard_name: ash_fusion_temperature
+    dcs_tag: null
+    unit: degC
+    description: Temperatur leleh abu
+  - standard_name: thermal_camera_data
+    dcs_tag: null
+    unit: image
+    description: Data kamera termal
+  - standard_name: furnace_camera_image
+    dcs_tag: null
+    unit: image
+    description: Citra kamera furnace
+  - standard_name: acoustic_sensor
+    dcs_tag: null
+    unit: signal
+    description: Sensor akustik
+  - standard_name: ash_cooler_vibration
+    dcs_tag: null
+    unit: mm/s
+    description: Getaran ash cooler
+  - standard_name: ash_system_motor_current_signature
+    dcs_tag: null
+    unit: signal
+    description: Tanda tangan arus motor sistem abu

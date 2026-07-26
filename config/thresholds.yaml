@@ -1,0 +1,257 @@
+# FurnaceGuard AI — Ambang Risiko dan Aturan Rule Engine
+# Sumber: README §6, §13
+#
+# PERINGATAN: Threshold di berkas ini BUKAN batas operasi resmi.
+# Wajib divalidasi menggunakan baseline dan data operasi aktual Unit 1.
+# Setiap perubahan wajib dicatat (README §21).
+
+version: "0.1.0"
+last_reviewed_by: null      # isi nama engineer yang memvalidasi
+last_reviewed_date: null
+
+# Status risiko (README §13)
+risk_bands:
+  - name: normal
+    label: Normal
+    min: 0
+    max: 24
+    meaning: Belum ada pola blocking
+  - name: early_warning
+    label: Early Warning
+    min: 25
+    max: 49
+    meaning: Mulai terdapat penyimpangan
+  - name: warning
+    label: Warning
+    min: 50
+    max: 74
+    meaning: Kondisi abnormal perlu diverifikasi
+  - name: high_risk
+    label: High Risk
+    min: 75
+    max: 89
+    meaning: Pemeriksaan operator diperlukan
+  - name: critical
+    label: Critical
+    min: 90
+    max: 100
+    meaning: Indikasi kuat atau event berkembang
+
+# Tiga skor dilaporkan terpisah (README §13)
+score_definitions:
+  risk_score:
+    range: [0, 100]
+    description: Estimasi risiko blocking gabungan rule engine dan model
+  confidence_score:
+    range: [0, 100]
+    description: Keyakinan model terhadap prediksinya sendiri
+  data_quality_score:
+    range: [0, 100]
+    description: Kelayakan data masukan pada jendela evaluasi
+
+# Bobot mesin risiko hibrida (README §11)
+hybrid_weights:
+  rule_engine: 0.35
+  ml_classifier: 0.50
+  anomaly_detector: 0.15
+
+# Confidence diturunkan bila kualitas data buruk
+confidence_penalty:
+  data_quality_below: 70
+  penalty_factor: 0.6
+
+# Skor kualitas data
+data_quality:
+  weights:
+    completeness: 0.40
+    stuck_signal: 0.25
+    range_violation: 0.25
+    timestamp_regularity: 0.10
+  # Sinyal dianggap macet bila nilainya tidak berubah selama N sampel
+  stuck_window_samples: 30
+  stuck_tolerance: 1.0e-6
+  # Jarak sampel yang diharapkan, detik
+  expected_interval_seconds: 60
+
+# Aturan rule engine (README §6).
+# Setiap aturan memberi kontribusi poin; total dinormalisasi ke 0-100.
+# `deviation` dihitung terhadap baseline zona beban aktif (README §10),
+# dinyatakan dalam robust z-score.
+rules:
+  main_bed_agglomeration:
+    event_type: furnace_agglomeration
+    default_location: main_bed
+    conditions:
+      - feature: bed_differential_pressure_dev
+        operator: ">"
+        value: 2.0
+        points: 20
+        reason: Bed differential pressure meningkat di atas baseline
+      - feature: primary_air_pressure_dev
+        operator: ">"
+        value: 2.0
+        points: 15
+        reason: Primary air pressure meningkat
+      - feature: main_bed_air_flow_dev
+        operator: "<"
+        value: -2.0
+        points: 15
+        reason: Primary air flow menurun
+      - feature: main_bed_air_resistance_dev
+        operator: ">"
+        value: 2.5
+        points: 25
+        reason: Rasio tekanan terhadap aliran udara meningkat
+      - feature: bed_temp_spread
+        operator: ">"
+        value: 60.0
+        points: 15
+        reason: Bed temperature spread membesar
+      - feature: furnace_pressure_rolling_std_15m
+        operator: ">"
+        value: 120.0
+        points: 10
+        reason: Furnace pressure berfluktuasi
+
+  auxiliary_bed_disturbance:
+    event_type: auxiliary_bed_disturbance
+    default_location: front_auxiliary_bed
+    conditions:
+      - feature: main_aux_temp_spread
+        operator: ">"
+        value: 70.0
+        points: 30
+        reason: Selisih temperatur main bed dan auxiliary bed membesar
+      - feature: auxiliary_bed_air_flow_dev
+        operator: "<"
+        value: -2.0
+        points: 25
+        reason: Auxiliary bed airflow menurun
+      - feature: aux_bed_air_resistance_dev
+        operator: ">"
+        value: 2.5
+        points: 25
+        reason: Resistansi udara auxiliary bed meningkat
+      - feature: aux_bed_pressure_rolling_std_15m
+        operator: ">"
+        value: 0.6
+        points: 20
+        reason: Auxiliary bed pressure tidak stabil
+
+  slag_pipe_blocking:
+    event_type: bottom_ash_blocking
+    default_location: slag_pipe_unknown
+    conditions:
+      - feature: slag_discharge_failure
+        operator: ">"
+        value: 0.5
+        points: 35
+        reason: Slag valve terbuka tetapi ash tidak keluar
+      - feature: ash_cooler_current_slope
+        operator: ">"
+        value: 0.05
+        points: 25
+        reason: Ash cooler current meningkat
+      - feature: main_bed_pressure_dev
+        operator: ">"
+        value: 2.0
+        points: 20
+        reason: Bed pressure meningkat
+      - feature: bed_differential_pressure_slope_30m
+        operator: ">"
+        value: 0.01
+        points: 20
+        reason: Bed differential pressure naik berkelanjutan
+
+  coal_feeder_blocking:
+    event_type: coal_feeder_blocking
+    default_location: coal_feeder_unknown
+    conditions:
+      - feature: coal_feeder_imbalance
+        operator: ">"
+        value: 0.25
+        points: 30
+        reason: Ketidakseimbangan aliran antar coal feeder
+      - feature: coal_feeder_command_deviation
+        operator: ">"
+        value: 0.15
+        points: 25
+        reason: Feeder command berbeda dengan actual flow
+      - feature: coal_feeder_current_max_dev
+        operator: ">"
+        value: 2.5
+        points: 20
+        reason: Feeder motor current meningkat
+      - feature: oxygen_o2_dev
+        operator: ">"
+        value: 2.0
+        points: 15
+        reason: O2 meningkat
+      - feature: carbon_monoxide_co_rolling_std_15m
+        operator: ">"
+        value: 120.0
+        points: 10
+        reason: CO berfluktuasi
+
+  return_system_disturbance:
+    event_type: return_system_disturbance
+    default_location: return_leg
+    conditions:
+      - feature: return_leg_temperature_dev
+        operator: "abs>"
+        value: 2.5
+        points: 30
+        reason: Return leg temperature menyimpang
+      - feature: u_valve_air_pressure_dev
+        operator: "<"
+        value: -2.0
+        points: 30
+        reason: U-valve air pressure menurun
+      - feature: return_leg_pressure_dev
+        operator: "abs>"
+        value: 2.5
+        points: 20
+        reason: Return leg pressure menyimpang
+      - feature: separator_differential_pressure_dev
+        operator: "abs>"
+        value: 2.5
+        points: 20
+        reason: Separator differential pressure berubah
+
+  air_distribution_disturbance:
+    event_type: air_distribution_disturbance
+    default_location: main_bed
+    conditions:
+      - feature: main_bed_air_resistance_dev
+        operator: ">"
+        value: 2.0
+        points: 30
+        reason: Main bed airflow tidak sesuai pressure
+      - feature: aux_air_flow_imbalance
+        operator: ">"
+        value: 0.25
+        points: 25
+        reason: Auxiliary bed airflow tidak seimbang
+      - feature: primary_air_pressure_dev
+        operator: "abs>"
+        value: 2.5
+        points: 20
+        reason: Header pressure berubah
+      - feature: bed_temp_spread
+        operator: ">"
+        value: 55.0
+        points: 25
+        reason: Bed temperature spread meningkat
+
+# Ambang keputusan alarm — dipilih di data validasi dengan target
+# false alarm harian, bukan ditetapkan sembarangan.
+alarm:
+  target_false_alarms_per_day: 2.0
+  minimum_recall: 0.60
+  # Alarm hanya dinyatakan bila skor bertahan di atas ambang selama N menit
+  persistence_minutes: 10
+  # Batas porsi waktu sistem boleh berada dalam kondisi alarm.
+  # Tanpa batas ini, ambang yang sangat rendah dapat lolos anggaran alarm
+  # palsu dengan cara membuat alarm menyala hampir sepanjang waktu — satu
+  # rentetan panjang, tercatat sedikit, tetapi tidak berguna bagi operator.
+  max_alarm_duty_cycle: 0.15

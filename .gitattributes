@@ -1,0 +1,14 @@
+# Normalize source text across Windows/Linux contributors
+* text=auto eol=lf
+
+# Binary/data artifacts
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.parquet binary
+*.joblib binary
+*.pkl binary
+*.xlsx binary
+*.xls binary

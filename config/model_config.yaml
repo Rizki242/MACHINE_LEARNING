@@ -1,0 +1,200 @@
+# FurnaceGuard AI — Konfigurasi Model dan Evaluasi
+# Sumber: README §5 (target), §9 (fitur), §12 (model dan evaluasi)
+
+version: "0.1.0"
+
+# --------------------------------------------------------------------
+# Target prediksi (README §5)
+# --------------------------------------------------------------------
+horizons:
+  - name: blocking_next_30m
+    minutes: 30
+  - name: blocking_next_60m
+    minutes: 60
+  - name: blocking_next_180m
+    minutes: 180
+
+primary_horizon: blocking_next_60m
+
+# Target tambahan per lokasi (README §5) — diaktifkan bila jumlah
+# event per kelas mencukupi.
+auxiliary_targets:
+  enabled: true
+  minimum_positive_events: 8
+  targets:
+    - main_bed_blocking_probability
+    - front_aux_bed_disturbance_probability
+    - rear_aux_bed_disturbance_probability
+    - slag_pipe_1_blocking_probability
+    - slag_pipe_2_blocking_probability
+    - slag_pipe_3_blocking_probability
+    - slag_pipe_4_blocking_probability
+    - coal_feeder_blocking_probability
+    - return_system_disturbance_probability
+
+# --------------------------------------------------------------------
+# Pembagian data BERDASARKAN WAKTU, bukan acak (README §12)
+# Embargo mencegah jendela rolling menyeberang batas split.
+# --------------------------------------------------------------------
+split:
+  method: temporal
+  train_end: "2023-12-31 23:59:00"
+  validation_end: "2024-12-31 23:59:00"
+  test_end: "2026-05-31 23:59:00"
+  embargo_hours: 6
+
+# Sampling: data 1 menit selama 10 tahun terlalu besar untuk dilatih
+# utuh. Ambil seluruh jendela positif, dan sub-sampel jendela negatif.
+sampling:
+  negative_subsample_rate: 0.02
+  # Buang jendela tepat sebelum horizon terpanjang untuk menghindari
+  # label ambigu di perbatasan.
+  exclusion_buffer_minutes: 15
+  random_state: 42
+
+# --------------------------------------------------------------------
+# Rekayasa fitur (README §9)
+# --------------------------------------------------------------------
+features:
+  rolling_windows_minutes: [5, 15, 30, 60]
+  rolling_std_windows_minutes: [15]
+  slope_windows_minutes: [15, 30]
+  rate_of_change_minutes: 5
+  # Semua jendela HANYA melihat ke belakang. Tidak ada center=True.
+  backward_only: true
+  # Kolom dasar yang dikenai transformasi rolling
+  rolling_base_columns:
+    - unit_load_mw
+    - main_steam_flow
+    - coal_flow_total
+    - main_bed_temperature
+    - front_aux_bed_temperature
+    - rear_aux_bed_temperature
+    - main_bed_pressure
+    - bed_differential_pressure
+    - aux_bed_pressure
+    - furnace_pressure
+    - main_bed_air_flow
+    - auxiliary_bed_air_flow
+    - primary_air_pressure
+    - secondary_air_flow
+    - oxygen_o2
+    - carbon_monoxide_co
+    - id_fan_current
+    - ash_cooler_motor_current
+    - return_leg_temperature
+    - return_leg_pressure
+    - u_valve_air_pressure
+    - separator_differential_pressure
+
+baseline:
+  # Baseline dihitung per zona beban, bukan global (README §10)
+  group_by: load_zone
+  statistic: median
+  dispersion: mad          # median absolute deviation, tahan pencilan
+  min_samples_per_zone: 500
+  # Baseline hanya dihitung dari periode tanpa event (jendela bersih)
+  exclude_hours_before_event: 6
+  exclude_hours_after_event: 6
+
+# --------------------------------------------------------------------
+# Model (README §12)
+# --------------------------------------------------------------------
+models:
+  xgboost:
+    enabled: true
+    params:
+      n_estimators: 400
+      max_depth: 5
+      learning_rate: 0.05
+      subsample: 0.8
+      colsample_bytree: 0.8
+      min_child_weight: 5
+      reg_lambda: 2.0
+      objective: "binary:logistic"
+      eval_metric: "aucpr"
+      random_state: 42
+      n_jobs: -1
+
+  logistic_regression:
+    enabled: true
+    params:
+      C: 1.0
+      max_iter: 2000
+      class_weight: balanced
+      random_state: 42
+
+  decision_tree:
+    enabled: true
+    params:
+      max_depth: 6
+      min_samples_leaf: 50
+      class_weight: balanced
+      random_state: 42
+
+  random_forest:
+    enabled: true
+    params:
+      n_estimators: 300
+      max_depth: 10
+      min_samples_leaf: 25
+      class_weight: balanced_subsample
+      random_state: 42
+      n_jobs: -1
+
+  isolation_forest:
+    enabled: true
+    params:
+      n_estimators: 200
+      contamination: 0.02
+      random_state: 42
+      n_jobs: -1
+
+calibration:
+  enabled: true
+  method: isotonic          # sigmoid | isotonic
+  cv: 3
+
+# --------------------------------------------------------------------
+# Evaluasi (README §12)
+# --------------------------------------------------------------------
+evaluation:
+  metrics:
+    - precision
+    - recall
+    - f1
+    - pr_auc
+    - roc_auc
+    - false_alarms_per_day
+    - missed_event_rate
+    - event_detection_rate
+    - average_warning_horizon_minutes
+    - median_warning_horizon_minutes
+    - brier_score
+    - calibration_error
+  # Metrik utama untuk memilih model. Kelas positif sangat jarang,
+  # sehingga ROC-AUC menyesatkan bila dipakai sendirian.
+  primary_metric: pr_auc
+  secondary_metric: false_alarms_per_day
+  calibration_bins: 10
+  # Sebuah event dinyatakan terdeteksi bila ada minimal satu alarm
+  # dalam jendela ini sebelum start_time event.
+  detection_window_minutes: 180
+
+explainability:
+  shap:
+    enabled: true
+    # SHAP pada seluruh dataset terlalu mahal; ambil sampel.
+    background_samples: 500
+    explain_samples: 2000
+    top_n_indicators: 5
+
+# --------------------------------------------------------------------
+# Registri model — setiap artefak dicatat versinya (README §21)
+# --------------------------------------------------------------------
+registry:
+  directory: backend/models
+  metadata_file: backend/models/model_registry.json
+  # Metrik yang dihitung pada data sintetis TIDAK BOLEH dikutip
+  # sebagai unjuk kerja lapangan.
+  require_data_source_label: true
